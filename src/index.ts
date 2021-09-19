@@ -31,27 +31,10 @@ const loaderOptions = {
 app.loader.add('catJAM', 'https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://cdn.betterttv.net/emote/5f1b0186cf6d2144653d2970/3x', loaderOptions).load((loader, resources) => {
   const texture = PIXI.Texture.from(resources.catJAM.data);
   const cat = new PIXI.Sprite(texture);
+  (cat.texture.baseTexture.resource as any).source.loop = true;
 
-  // @ts-ignore
-  console.log(cat.texture.baseTexture.resource.source.loop);
-  // @ts-ignore
-  cat.texture.baseTexture.resource.source.loop = true;
-
-  // @ts-ignore
-  cat.texture.baseTexture.resource.autoPlay = false;
   container.addChild(cat);
 });
-
-app.loader.onProgress.add((loader, resource) => {
-  console.log(loader);
-  console.log(resource);
-}); // called once per loaded/errored file
-app.loader.onError.add((loader, resource) => {
-  console.log(loader);
-  console.log(resource);
-}); // called once per errored file
-// app.loader.onLoad.add(() => {}); // called once per loaded file
-// app.loader.onComplete.add(() => {}); // called once when the queued resources all load.
 
 app.stage.addChild(container);
 
