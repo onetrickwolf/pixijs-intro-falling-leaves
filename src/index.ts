@@ -37,7 +37,7 @@ function onPlayVideo() {
       const texture = PIXI.Texture.from(resources.video.data);
       const video = new PIXI.Sprite(texture);
 
-      // TS2339: Property 'source' does not exist on type 'Resource'.
+      // Without @ts-ignore: TS2339: Property 'source' does not exist on type 'Resource'.
       // @ts-ignore
       video.texture.baseTexture.resource.source.loop = true;
 
