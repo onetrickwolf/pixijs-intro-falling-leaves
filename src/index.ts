@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import tmi from 'tmi.js';
 
 const bunnyImage = require('../assets/bunny.png');
 
@@ -9,32 +10,6 @@ const app = new PIXI.Application({
 document.body.appendChild(app.view);
 
 const container = new PIXI.Container();
-
-// PIXI.Texture.fromURL('https://pixijs.io/examples/examples/assets/video.mp4')
-//   .then((texture) => {
-//     console.log('this ran');
-//     const sprite = new PIXI.Sprite(texture);
-//     container.addChild(sprite);
-//   })
-//   .catch((err) => console.log(err));
-
-// const horse = PIXI.Texture.from('https://upload.wikimedia.org/wikipedia/commons/8/87/Schlossbergbahn.webm');
-// const horseSprite = new PIXI.Sprite(horse);
-// container.addChild(horseSprite);
-
-const loaderOptions = {
-  loadType: PIXI.LoaderResource.LOAD_TYPE.VIDEO,
-  // xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
-  metadata: { mimeType: 'video/webm' },
-};
-
-app.loader.add('catJAM', 'https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://cdn.betterttv.net/emote/5f1b0186cf6d2144653d2970/3x', loaderOptions).load((loader, resources) => {
-  const texture = PIXI.Texture.from(resources.catJAM.data);
-  const cat = new PIXI.Sprite(texture);
-  (cat.texture.baseTexture.resource as any).source.loop = true;
-
-  container.addChild(cat);
-});
 
 app.stage.addChild(container);
 
@@ -58,9 +33,73 @@ container.y = app.screen.height / 2;
 container.pivot.x = container.width / 2;
 container.pivot.y = container.height / 2;
 
-// Listen for animate update
+// Connect to Twitch chat
+const client = new tmi.Client({
+  channels: ['onetrickwolf'],
+});
+
+client.connect();
+
+const emotes: PIXI.Sprite[] = []; // Array of emote sprites
+const cache: any = {}; // Texture cache
+
+function handleMessage(channel: any, tags: { emotes: {}; }) {
+  if (tags.emotes) {
+    // TODO: emotes are not in order will need to sort them
+    console.log(tags.emotes);
+    console.log(Object.keys(tags.emotes));
+    const emoteId: string = tags.emotes ? Object.keys(tags.emotes)[0] : '440';
+    const emoteLoader = new PIXI.Loader();
+    let textureUrl: string = `https://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/3.0`;
+    let loaderOptions: any = {
+      loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE,
+      xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
+    };
+    let isVideo: boolean = false;
+    if (emoteId.includes('emotesv2_')) {
+      textureUrl = `https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://static-cdn.jtvnw.net/emoticons/v2/${emoteId}/default/dark/3.0`;
+      loaderOptions = {
+        loadType: PIXI.LoaderResource.LOAD_TYPE.VIDEO,
+        // xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
+        metadata: { mimeType: 'video/webm' },
+      };
+      isVideo = true;
+    }
+
+    const emoteResource = `emote_${emoteId}`;
+    if (!cache[emoteResource]) {
+      emoteLoader.add(emoteResource, textureUrl, loaderOptions)
+        .load((loader, resources) => {
+          let emoteSprite;
+          if (isVideo) {
+            const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
+            emoteSprite = new PIXI.Sprite(webmTexture);
+            (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
+            cache[emoteResource] = webmTexture;
+          } else {
+            emoteSprite = new PIXI.Sprite(resources[emoteResource].texture);
+            cache[emoteResource] = resources[emoteResource].texture;
+          }
+          app.stage.addChild(emoteSprite);
+          emotes.push(emoteSprite);
+          loader.destroy();
+        });
+    } else {
+      console.log('Loaded from cache');
+      const emoteSprite = new PIXI.Sprite(cache[emoteResource]);
+      app.stage.addChild(emoteSprite);
+      emotes.push(emoteSprite);
+    }
+  }
+}
+
+client.on('message', handleMessage);
+
+app.ticker.maxFPS = 60;
 app.ticker.add((delta: number) => {
-  // rotate the container!
-  // use delta to create frame-independent transform
   container.rotation -= 0.01 * delta;
+
+  for (let i = 0; i < emotes.length; i += 1) {
+    emotes[i].x += delta;
+  }
 });
