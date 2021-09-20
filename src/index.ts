@@ -40,7 +40,7 @@ const client = new tmi.Client({
 
 client.connect();
 
-const emotes: PIXI.Sprite[] = []; // Array of emote sprites
+let emotes: PIXI.Sprite[] = []; // Array of emote sprites
 const cache: any = {}; // Texture cache
 
 function handleMessage(channel: any, tags: { emotes: {}; }) {
@@ -101,5 +101,31 @@ app.ticker.add((delta: number) => {
 
   for (let i = 0; i < emotes.length; i += 1) {
     emotes[i].x += delta;
+  }
+});
+
+// Cleanup when switching off scene, tickers automatically pause
+function sceneHidden() {
+  // Destroy all emote sprites so scene is fresh when switching back
+  for (let i = 0; i < emotes.length; i += 1) {
+    emotes[i].destroy();
+  }
+  emotes = [];
+  // Remove listeners
+  client.removeAllListeners('message');
+  // TODO: Would ideally close the connection to Twitch fully but this may cause issues if the
+  //  promises are not handled carefully
+}
+
+// What to do when switching to scene
+function sceneVisible() {
+  client.on('message', handleMessage);
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible') {
+    sceneHidden();
+  } else {
+    sceneVisible();
   }
 });
