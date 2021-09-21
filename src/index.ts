@@ -39,7 +39,7 @@ container.pivot.y = container.height / 2;
 
 // Connect to Twitch chat
 const client = new tmi.Client({
-  channels: ['moonmoon'],
+  channels: ['onetrickwolf'],
 });
 
 client.connect();
@@ -47,21 +47,32 @@ client.connect();
 let emoteSprites: PIXI.Sprite[] = []; // Array of emote sprites
 const cache: any = {}; // Texture cache
 
-function handleMessage(channel: any, tags: { emotes: {}; }) {
+client.on('message', handleMessage);
+
+function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
   if (tags.emotes) {
+    console.log(message);
     // TODO: emotes are not in order will need to sort them
-    const emotes = Object.keys(tags.emotes);
-    emotes.forEach((emote) => {
-      console.log(emote);
-    });
-    const emoteId: string = tags.emotes ? Object.keys(tags.emotes)[0] : '440';
-    const emoteLoader = new PIXI.Loader();
+    const emotes:string[] = Object.keys(tags.emotes);
+    processEmotes(emotes);
+  }
+}
+
+function processEmotes(emotes:string[]) {
+  const emoteLoader = new PIXI.Loader();
+
+  let loaderOptions: any = {
+    loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE,
+    xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
+  };
+
+  const cachedEmotes = [];
+
+  emotes.forEach((emote) => {
+    const emoteId: string = emote;
     let textureUrl: string = `https://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/3.0`;
-    let loaderOptions: any = {
-      loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE,
-      xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
-    };
     let isVideo: boolean = false;
+
     if (emoteId.includes('emotesv2_')) {
       textureUrl = `https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://static-cdn.jtvnw.net/emoticons/v2/${emoteId}/default/dark/3.0`;
       loaderOptions = {
@@ -72,35 +83,56 @@ function handleMessage(channel: any, tags: { emotes: {}; }) {
       isVideo = true;
     }
 
-    let emoteSprite;
-
     const emoteResource = `emote_${emoteId}`;
-    if (!cache[emoteResource]) {
-      emoteLoader.add(emoteResource, textureUrl, loaderOptions)
-        .load((loader, resources) => {
-          if (isVideo) {
-            const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
-            emoteSprite = new PIXI.Sprite(webmTexture);
-            (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
-            cache[emoteResource] = webmTexture;
-          } else {
-            emoteSprite = new PIXI.Sprite(resources[emoteResource].texture);
-            cache[emoteResource] = resources[emoteResource].texture;
-          }
-          app.stage.addChild(emoteSprite);
-          emoteSprites.push(emoteSprite);
-          loader.destroy();
-        });
-    } else {
-      console.log('Loaded from cache');
-      emoteSprite = new PIXI.Sprite(cache[emoteResource]);
-      app.stage.addChild(emoteSprite);
-      emoteSprites.push(emoteSprite);
-    }
-  }
-}
 
-client.on('message', handleMessage);
+    if (!cache[emoteResource]) {
+      emoteLoader.add(emoteResource, textureUrl, loaderOptions);
+    } else {
+      cachedEmotes.push(cache[emoteResource]);
+    }
+  });
+
+  emoteLoader.load((loader, resources) => {
+    console.log(resources);
+    loader.destroy();
+    // if (isVideo) {
+    //   const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
+    //   emoteSprite = new PIXI.Sprite(webmTexture);
+    //   (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
+    //   cache[emoteResource] = webmTexture;
+    // } else {
+    //   emoteSprite = new PIXI.Sprite(resources[emoteResource].texture);
+    //   cache[emoteResource] = resources[emoteResource].texture;
+    // }
+    // app.stage.addChild(emoteSprite);
+    // emoteSprites.push(emoteSprite);
+    // loader.destroy();
+  });
+
+  let emoteSprite;
+
+  // if (!cache[emoteResource]) {
+  //   emoteLoader.load((loader, resources) => {
+  //     if (isVideo) {
+  //       const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
+  //       emoteSprite = new PIXI.Sprite(webmTexture);
+  //       (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
+  //       cache[emoteResource] = webmTexture;
+  //     } else {
+  //       emoteSprite = new PIXI.Sprite(resources[emoteResource].texture);
+  //       cache[emoteResource] = resources[emoteResource].texture;
+  //     }
+  //     app.stage.addChild(emoteSprite);
+  //     emoteSprites.push(emoteSprite);
+  //     loader.destroy();
+  //   });
+  // } else {
+  //   console.log('Loaded from cache');
+  //   emoteSprite = new PIXI.Sprite(cache[emoteResource]);
+  //   app.stage.addChild(emoteSprite);
+  //   emoteSprites.push(emoteSprite);
+  // }
+}
 
 app.ticker.maxFPS = 60;
 app.ticker.add((delta: number) => {
