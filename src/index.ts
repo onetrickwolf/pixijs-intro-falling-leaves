@@ -4,10 +4,14 @@ import tmi from 'tmi.js';
 const bunnyImage = require('../assets/bunny.png');
 
 const app = new PIXI.Application({
-  width: 800, height: 600, backgroundColor: 0x1099bb, resolution: window.devicePixelRatio || 1,
+  resizeTo: window,
+  resolution: window.devicePixelRatio || 1,
+  backgroundAlpha: 0,
 });
 
 document.body.appendChild(app.view);
+
+app.view.style.display = 'inline';
 
 const container = new PIXI.Container();
 
@@ -35,19 +39,21 @@ container.pivot.y = container.height / 2;
 
 // Connect to Twitch chat
 const client = new tmi.Client({
-  channels: ['onetrickwolf'],
+  channels: ['moonmoon'],
 });
 
 client.connect();
 
-let emotes: PIXI.Sprite[] = []; // Array of emote sprites
+let emoteSprites: PIXI.Sprite[] = []; // Array of emote sprites
 const cache: any = {}; // Texture cache
 
 function handleMessage(channel: any, tags: { emotes: {}; }) {
   if (tags.emotes) {
     // TODO: emotes are not in order will need to sort them
-    console.log(tags.emotes);
-    console.log(Object.keys(tags.emotes));
+    const emotes = Object.keys(tags.emotes);
+    emotes.forEach((emote) => {
+      console.log(emote);
+    });
     const emoteId: string = tags.emotes ? Object.keys(tags.emotes)[0] : '440';
     const emoteLoader = new PIXI.Loader();
     let textureUrl: string = `https://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/3.0`;
@@ -66,11 +72,12 @@ function handleMessage(channel: any, tags: { emotes: {}; }) {
       isVideo = true;
     }
 
+    let emoteSprite;
+
     const emoteResource = `emote_${emoteId}`;
     if (!cache[emoteResource]) {
       emoteLoader.add(emoteResource, textureUrl, loaderOptions)
         .load((loader, resources) => {
-          let emoteSprite;
           if (isVideo) {
             const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
             emoteSprite = new PIXI.Sprite(webmTexture);
@@ -81,14 +88,14 @@ function handleMessage(channel: any, tags: { emotes: {}; }) {
             cache[emoteResource] = resources[emoteResource].texture;
           }
           app.stage.addChild(emoteSprite);
-          emotes.push(emoteSprite);
+          emoteSprites.push(emoteSprite);
           loader.destroy();
         });
     } else {
       console.log('Loaded from cache');
-      const emoteSprite = new PIXI.Sprite(cache[emoteResource]);
+      emoteSprite = new PIXI.Sprite(cache[emoteResource]);
       app.stage.addChild(emoteSprite);
-      emotes.push(emoteSprite);
+      emoteSprites.push(emoteSprite);
     }
   }
 }
@@ -99,18 +106,18 @@ app.ticker.maxFPS = 60;
 app.ticker.add((delta: number) => {
   container.rotation -= 0.01 * delta;
 
-  for (let i = 0; i < emotes.length; i += 1) {
-    emotes[i].x += delta;
+  for (let i = 0; i < emoteSprites.length; i += 1) {
+    emoteSprites[i].x += delta;
   }
 });
 
 // Cleanup when switching off scene, tickers automatically pause
 function sceneHidden() {
   // Destroy all emote sprites so scene is fresh when switching back
-  for (let i = 0; i < emotes.length; i += 1) {
-    emotes[i].destroy();
+  for (let i = 0; i < emoteSprites.length; i += 1) {
+    emoteSprites[i].destroy();
   }
-  emotes = [];
+  emoteSprites = [];
   // Remove listeners
   client.removeAllListeners('message');
   // TODO: Would ideally close the connection to Twitch fully but this may cause issues if the
