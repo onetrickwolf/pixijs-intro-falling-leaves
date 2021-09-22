@@ -47,13 +47,16 @@ async function handleMessage(channel: any, tags: { emotes: {}; }, message: strin
   const messageSprites = await loadEmotesPixi(messageEmotes);
 
   const messageContainer = new PIXI.Container();
-  messageSprites.forEach((sprite, index) => {
+  messageSprites.forEach((emoteSprite, index) => {
+    const sprite = emoteSprite;
+
     messageContainer.addChild(sprite);
     sprite.anchor.set(0.5);
     sprite.x = (config.maxEmoteWidth + config.emotePadding) * index;
     sprite.width = config.maxEmoteWidth;
     sprite.scale.set(Math.min(sprite.scale.x, sprite.scale.y));
-    messageContainer.y = 112 / 2;
+
+    messageContainer.scale.set(0.5, 0.5);
 
     app.stage.addChild(messageContainer);
   });
