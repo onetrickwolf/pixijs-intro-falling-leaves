@@ -92,10 +92,11 @@ function loadEmotesPixi(emotes: any[]): Promise<PIXI.Sprite[]> {
         url = `https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=${url}`;
       }
       if (!cache[emoteId]) {
-        cache[emoteId] = 'placeholder';
+        cache[emoteId] = {}; // Empty object to defer cache in case duplicates are already loading
         emoteLoader.add(emoteId, url, loaderOptions);
       } else {
-        // Defer cache until after loading is complete in case any non-cached duplicates exist
+        // Defer loading from cache until after loading is complete in case any non-cached
+        // duplicates exist
         cachedQueue.push([index, emoteId]);
       }
     });
