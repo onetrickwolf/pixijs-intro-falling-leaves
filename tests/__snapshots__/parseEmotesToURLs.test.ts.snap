@@ -21,7 +21,7 @@ exports[`BTTV emotes 1`] = `
 Array [
   Object {
     "emoteId": "57bfa325d5219dd112c18a99",
-    "imageType": "static",
+    "imageType": "animated",
     "position": 6,
     "url": "https://cdn.betterttv.net/emote/57bfa325d5219dd112c18a99/3x",
   },

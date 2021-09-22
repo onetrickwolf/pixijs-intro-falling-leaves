@@ -56,6 +56,7 @@ async function handleMessage(channel: any, tags: { emotes: {}; }, message: strin
     sprite.width = config.maxEmoteWidth;
     sprite.scale.set(Math.min(sprite.scale.x, sprite.scale.y));
 
+    messageContainer.y = config.maxEmoteWidth / 2;
     messageContainer.scale.set(0.5, 0.5);
 
     app.stage.addChild(messageContainer);
