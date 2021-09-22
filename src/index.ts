@@ -1,10 +1,10 @@
 import * as PIXI from 'pixi.js';
 import tmi from 'tmi.js';
+
 import parseEmotesToURLs from './parseEmotesToURLs';
 import bttvMapper from './bttvMapper';
 
-const bunnyImage = require('../assets/bunny.png');
-
+// Set up PixiJS Application
 const app = new PIXI.Application({
   resizeTo: window,
   resolution: window.devicePixelRatio || 1,
@@ -12,36 +12,13 @@ const app = new PIXI.Application({
 });
 
 document.body.appendChild(app.view);
-
 app.view.style.display = 'inline';
 
-const container = new PIXI.Container();
-
-app.stage.addChild(container);
-
-// Create a new texture
-const texture = PIXI.Texture.from(bunnyImage);
-
-// Create a 5x5 grid of bunnies
-for (let i = 0; i < 25; i += 1) {
-  const bunny = new PIXI.Sprite(texture);
-  bunny.anchor.set(0.5);
-  bunny.x = (i % 5) * 40;
-  bunny.y = Math.floor(i / 5) * 40;
-  container.addChild(bunny);
-}
-
-// Move container to the center
-container.x = app.screen.width / 2;
-container.y = app.screen.height / 2;
-
-// Center bunny sprite in local container coordinates
-container.pivot.x = container.width / 2;
-container.pivot.y = container.height / 2;
-
+// Configurations
 const config = {
   channel: 'onetrickwolf',
 };
+
 Object.freeze(config);
 
 // Connect to Twitch chat
@@ -51,21 +28,23 @@ const client = new tmi.Client({
 
 client.connect();
 
-let emoteSprites: PIXI.Sprite[] = []; // Array of emote sprites
-const cache: any = {}; // Texture cache
 let bttvMap: any = {};
 
 client.on('connected', async () => {
   const response = await fetch(`https://gif-emotes.opl.io/channel/username/${config.channel}.js`);
   bttvMap = bttvMapper(await response.json());
+
   client.on('message', handleMessage);
 });
 
-async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
+function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
   const emotes = parseEmotesToURLs(tags.emotes, message, bttvMap);
   console.log(emotes);
   // processEmotes(emotes);
 }
+
+let emoteSprites: PIXI.Sprite[] = []; // Array of emote sprites
+const cache: any = {}; // Texture cache
 
 function processEmotes(emotes: string[]) {
   const emoteLoader = new PIXI.Loader();
@@ -145,7 +124,7 @@ function processEmotes(emotes: string[]) {
 
 app.ticker.maxFPS = 60;
 app.ticker.add((delta: number) => {
-  container.rotation -= 0.01 * delta;
+  bunnyContainer.rotation -= 0.01 * delta;
 
   for (let i = 0; i < emoteSprites.length; i += 1) {
     emoteSprites[i].x += delta;
@@ -177,3 +156,33 @@ document.addEventListener('visibilitychange', () => {
     sceneVisible();
   }
 });
+
+// Rotating buns for debugging and benchmarking
+const bunnyImage = require('../assets/bunny.png');
+
+const bunnyContainer = new PIXI.Container();
+
+app.stage.addChild(bunnyContainer);
+
+setupBunny();
+function setupBunny() {
+  // Create a new texture
+  const texture = PIXI.Texture.from(bunnyImage);
+
+  // Create a 5x5 grid of bunnies
+  for (let i = 0; i < 25; i += 1) {
+    const bunny = new PIXI.Sprite(texture);
+    bunny.anchor.set(0.5);
+    bunny.x = (i % 5) * 40;
+    bunny.y = Math.floor(i / 5) * 40;
+    bunnyContainer.addChild(bunny);
+  }
+
+  // Move container to the center
+  bunnyContainer.x = app.screen.width / 2;
+  bunnyContainer.y = app.screen.height / 2;
+
+  // Center bunny sprite in local container coordinates
+  bunnyContainer.pivot.x = bunnyContainer.width / 2;
+  bunnyContainer.pivot.y = bunnyContainer.height / 2;
+}

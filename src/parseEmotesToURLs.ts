@@ -1,3 +1,7 @@
+/**
+ * Takes Twitch message and parses Twitch and BTTV emotes into easier to use array of objects.
+ * Array is ordered so that emotes can be displayed correctly.
+ */
 export default function parseEmotesToURLs(
   emotes: object,
   message: string,
