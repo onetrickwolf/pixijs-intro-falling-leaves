@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Animated Twitch emotes 1`] = `
+Array [
+  Object {
+    "emoteId": "emotesv2_553fbd45762b4387b204c53285a93dbb",
+    "imageType": "animated",
+    "position": 7,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_553fbd45762b4387b204c53285a93dbb/default/dark/3.0",
+  },
+  Object {
+    "emoteId": "emotesv2_447df256f3b1412b9fa0dfd3e9b6d84c",
+    "imageType": "animated",
+    "position": 17,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_447df256f3b1412b9fa0dfd3e9b6d84c/default/dark/3.0",
+  },
+]
+`;
+
+exports[`BTTV emotes 1`] = `
+Array [
+  Object {
+    "emoteId": "57bfa325d5219dd112c18a99",
+    "imageType": "static",
+    "position": 6,
+    "url": "https://cdn.betterttv.net/emote/57bfa325d5219dd112c18a99/3x",
+  },
+  Object {
+    "emoteId": "5b35ca08392c604c5fd81874",
+    "imageType": "animated",
+    "position": 16,
+    "url": "https://cdn.betterttv.net/emote/5b35ca08392c604c5fd81874/3x",
+  },
+]
+`;
+
+exports[`BTTV emotes mixed 1`] = `
+Array [
+  Object {
+    "emoteId": "304734759",
+    "imageType": "static",
+    "position": 8,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v1/304734759/3.0",
+  },
+  Object {
+    "emoteId": "5f41c91bf93bbe5d717f8a09",
+    "imageType": "animated",
+    "position": 16,
+    "url": "https://cdn.betterttv.net/emote/5f41c91bf93bbe5d717f8a09/3x",
+  },
+  Object {
+    "emoteId": "304734759",
+    "imageType": "static",
+    "position": 25,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v1/304734759/3.0",
+  },
+]
+`;
+
+exports[`Duplicate Twitch emotes 1`] = `
+Array [
+  Object {
+    "emoteId": "304734759",
+    "imageType": "static",
+    "position": 8,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v1/304734759/3.0",
+  },
+  Object {
+    "emoteId": "emotesv2_447df256f3b1412b9fa0dfd3e9b6d84c",
+    "imageType": "animated",
+    "position": 18,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v2/emotesv2_447df256f3b1412b9fa0dfd3e9b6d84c/default/dark/3.0",
+  },
+  Object {
+    "emoteId": "304734759",
+    "imageType": "static",
+    "position": 28,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v1/304734759/3.0",
+  },
+]
+`;
+
+exports[`Non-animated Twitch emotes 1`] = `
+Array [
+  Object {
+    "emoteId": "301948071",
+    "imageType": "static",
+    "position": 6,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v1/301948071/3.0",
+  },
+  Object {
+    "emoteId": "301948074",
+    "imageType": "static",
+    "position": 14,
+    "url": "https://static-cdn.jtvnw.net/emoticons/v1/301948074/3.0",
+  },
+]
+`;

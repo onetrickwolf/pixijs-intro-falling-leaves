@@ -20,5 +20,6 @@ module.exports = {
   rules: {
     'no-use-before-define': ['error', 'nofunc'],
     'import/extensions': 0,
+    '@typescript-eslint/type-annotation-spacing': 2,
   },
 };

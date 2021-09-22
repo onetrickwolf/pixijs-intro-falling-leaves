@@ -1,5 +1,7 @@
 import * as PIXI from 'pixi.js';
 import tmi from 'tmi.js';
+import parseEmotesToURLs from './parseEmotesToURLs';
+import bttvMapper from './bttvMapper';
 
 const bunnyImage = require('../assets/bunny.png');
 
@@ -37,28 +39,35 @@ container.y = app.screen.height / 2;
 container.pivot.x = container.width / 2;
 container.pivot.y = container.height / 2;
 
+const config = {
+  channel: 'onetrickwolf',
+};
+Object.freeze(config);
+
 // Connect to Twitch chat
 const client = new tmi.Client({
-  channels: ['onetrickwolf'],
+  channels: [config.channel],
 });
 
 client.connect();
 
 let emoteSprites: PIXI.Sprite[] = []; // Array of emote sprites
 const cache: any = {}; // Texture cache
+let bttvMap: any = {};
 
-client.on('message', handleMessage);
+client.on('connected', async () => {
+  const response = await fetch(`https://gif-emotes.opl.io/channel/username/${config.channel}.js`);
+  bttvMap = bttvMapper(await response.json());
+  client.on('message', handleMessage);
+});
 
-function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
-  if (tags.emotes) {
-    console.log(message);
-    // TODO: emotes are not in order will need to sort them
-    const emotes:string[] = Object.keys(tags.emotes);
-    processEmotes(emotes);
-  }
+async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
+  const emotes = parseEmotesToURLs(tags.emotes, message, bttvMap);
+  console.log(emotes);
+  // processEmotes(emotes);
 }
 
-function processEmotes(emotes:string[]) {
+function processEmotes(emotes: string[]) {
   const emoteLoader = new PIXI.Loader();
 
   let loaderOptions: any = {
