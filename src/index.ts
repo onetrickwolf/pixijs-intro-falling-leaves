@@ -9,6 +9,7 @@ const app = new PIXI.Application({
   resizeTo: window,
   resolution: window.devicePixelRatio || 1,
   backgroundAlpha: 0,
+  antialias: true,
 });
 
 document.body.appendChild(app.view);
@@ -17,6 +18,8 @@ app.view.style.display = 'inline';
 // Configurations
 const config = {
   channel: 'onetrickwolf',
+  maxEmoteWidth: 112,
+  emotePadding: 4,
 };
 
 Object.freeze(config);
@@ -37,107 +40,112 @@ client.on('connected', async () => {
   client.on('message', handleMessage);
 });
 
-function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
-  const emotes = parseEmotesToURLs(tags.emotes, message, bttvMap);
-  console.log(emotes);
-  // processEmotes(emotes);
+let emoteContainers: PIXI.Container[] = []; // Array of emote sprites
+
+async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
+  const messageEmotes = parseEmotesToURLs(tags.emotes, message, bttvMap);
+  const messageSprites = await loadEmotesPixi(messageEmotes);
+
+  const messageContainer = new PIXI.Container();
+  messageSprites.forEach((sprite, index) => {
+    messageContainer.addChild(sprite);
+    sprite.anchor.set(0.5);
+    sprite.x = (config.maxEmoteWidth + config.emotePadding) * index;
+    sprite.width = config.maxEmoteWidth;
+    sprite.scale.set(Math.min(sprite.scale.x, sprite.scale.y));
+    messageContainer.y = 112 / 2;
+
+    app.stage.addChild(messageContainer);
+  });
+  emoteContainers.push(messageContainer);
 }
 
-let emoteSprites: PIXI.Sprite[] = []; // Array of emote sprites
 const cache: any = {}; // Texture cache
 
-function processEmotes(emotes: string[]) {
-  const emoteLoader = new PIXI.Loader();
+function loadEmotesPixi(emotes: any[]): Promise<PIXI.Sprite[]> {
+  return new Promise((resolve) => {
+    const emoteLoader = new PIXI.Loader();
+    const spriteArray: PIXI.Sprite[] = [];
 
-  let loaderOptions: any = {
-    loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE,
-    xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
-  };
+    const cachedQueue: [index:number, emoteId:string][] = [];
 
-  const cachedEmotes = [];
+    emotes.forEach((emote, index) => {
+      let { url, emoteId } = emote;
+      emoteId = `emote_${emoteId}`;
 
-  emotes.forEach((emote) => {
-    const emoteId: string = emote;
-    let textureUrl: string = `https://static-cdn.jtvnw.net/emoticons/v1/${emoteId}/3.0`;
-    let isVideo: boolean = false;
-
-    if (emoteId.includes('emotesv2_')) {
-      textureUrl = `https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://static-cdn.jtvnw.net/emoticons/v2/${emoteId}/default/dark/3.0`;
-      loaderOptions = {
-        loadType: PIXI.LoaderResource.LOAD_TYPE.VIDEO,
-        // xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
-        metadata: { mimeType: 'video/webm' },
+      // Default static image loader options
+      let loaderOptions: any = {
+        loadType: PIXI.LoaderResource.LOAD_TYPE.IMAGE,
+        xhrType: PIXI.LoaderResource.XHR_RESPONSE_TYPE.BLOB,
+        metadata: { emoteIndex: index },
       };
-      isVideo = true;
-    }
 
-    const emoteResource = `emote_${emoteId}`;
+      // Adjust loader options if loading webm
+      if (emote.imageType === 'animated') {
+        loaderOptions = {
+          loadType: PIXI.LoaderResource.LOAD_TYPE.VIDEO,
+          metadata: {
+            mimeType: 'video/webm',
+            emoteIndex: index,
+          },
+        };
+        url = `https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=${url}`;
+      }
+      if (!cache[emoteId]) {
+        cache[emoteId] = 'placeholder';
+        emoteLoader.add(emoteId, url, loaderOptions);
+      } else {
+        // Defer cache until after loading is complete in case any non-cached duplicates exist
+        cachedQueue.push([index, emoteId]);
+      }
+    });
 
-    if (!cache[emoteResource]) {
-      emoteLoader.add(emoteResource, textureUrl, loaderOptions);
-    } else {
-      cachedEmotes.push(cache[emoteResource]);
-    }
+    emoteLoader.load((loader, resources) => {
+      Object.entries(resources)
+        .forEach(([emoteId, resource]) => {
+          const isAnimated = (resource.data.localName === 'video');
+
+          // @ts-ignore
+          // Abusing meta data a bit to pass ordering informing to simplify
+          const index = resource.metadata.emoteIndex;
+
+          let emoteSprite;
+
+          if (isAnimated) {
+            const webmTexture = PIXI.Texture.from(resource.data);
+            emoteSprite = new PIXI.Sprite(webmTexture);
+            (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
+          } else {
+            emoteSprite = new PIXI.Sprite(resource.texture);
+          }
+          cache[emoteId] = emoteSprite.texture;
+          spriteArray[index] = emoteSprite;
+        });
+
+      cachedQueue.forEach(([index, emoteId]) => {
+        spriteArray[index] = new PIXI.Sprite(cache[emoteId]);
+      });
+
+      loader.destroy();
+      return resolve(spriteArray);
+    });
   });
-
-  emoteLoader.load((loader, resources) => {
-    console.log(resources);
-    loader.destroy();
-    // if (isVideo) {
-    //   const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
-    //   emoteSprite = new PIXI.Sprite(webmTexture);
-    //   (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
-    //   cache[emoteResource] = webmTexture;
-    // } else {
-    //   emoteSprite = new PIXI.Sprite(resources[emoteResource].texture);
-    //   cache[emoteResource] = resources[emoteResource].texture;
-    // }
-    // app.stage.addChild(emoteSprite);
-    // emoteSprites.push(emoteSprite);
-    // loader.destroy();
-  });
-
-  let emoteSprite;
-
-  // if (!cache[emoteResource]) {
-  //   emoteLoader.load((loader, resources) => {
-  //     if (isVideo) {
-  //       const webmTexture = PIXI.Texture.from(resources[emoteResource].data);
-  //       emoteSprite = new PIXI.Sprite(webmTexture);
-  //       (emoteSprite.texture.baseTexture.resource as any).source.loop = true; // https://github.com/pixijs/pixijs/issues/7810
-  //       cache[emoteResource] = webmTexture;
-  //     } else {
-  //       emoteSprite = new PIXI.Sprite(resources[emoteResource].texture);
-  //       cache[emoteResource] = resources[emoteResource].texture;
-  //     }
-  //     app.stage.addChild(emoteSprite);
-  //     emoteSprites.push(emoteSprite);
-  //     loader.destroy();
-  //   });
-  // } else {
-  //   console.log('Loaded from cache');
-  //   emoteSprite = new PIXI.Sprite(cache[emoteResource]);
-  //   app.stage.addChild(emoteSprite);
-  //   emoteSprites.push(emoteSprite);
-  // }
 }
 
-app.ticker.maxFPS = 60;
+app.ticker.maxFPS = 120;
 app.ticker.add((delta: number) => {
-  bunnyContainer.rotation -= 0.01 * delta;
-
-  for (let i = 0; i < emoteSprites.length; i += 1) {
-    emoteSprites[i].x += delta;
+  for (let i = 0; i < emoteContainers.length; i += 1) {
+    emoteContainers[i].x += delta;
   }
 });
 
 // Cleanup when switching off scene, tickers automatically pause
 function sceneHidden() {
   // Destroy all emote sprites so scene is fresh when switching back
-  for (let i = 0; i < emoteSprites.length; i += 1) {
-    emoteSprites[i].destroy();
+  for (let i = 0; i < emoteContainers.length; i += 1) {
+    emoteContainers[i].destroy();
   }
-  emoteSprites = [];
+  emoteContainers = [];
   // Remove listeners
   client.removeAllListeners('message');
   // TODO: Would ideally close the connection to Twitch fully but this may cause issues if the
@@ -185,4 +193,8 @@ function setupBunny() {
   // Center bunny sprite in local container coordinates
   bunnyContainer.pivot.x = bunnyContainer.width / 2;
   bunnyContainer.pivot.y = bunnyContainer.height / 2;
+
+  app.ticker.add((delta: number) => {
+    bunnyContainer.rotation -= 0.01 * delta;
+  });
 }

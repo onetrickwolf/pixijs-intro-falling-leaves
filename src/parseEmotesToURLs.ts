@@ -47,7 +47,9 @@ export default function parseEmotesToURLs(
         const { id } = bttvMap[word];
         let { imageType } = bttvMap[word];
         const url = `https://cdn.betterttv.net/emote/${id}/3x`;
-        imageType = imageType === 'gif' ? 'animated' : 'static';
+        // FIXME: bttv does not allow cross origin requests, temporary fix is to always treat it as
+        //  animated so it goes through API to bypass this
+        imageType = 'animated'; // imageType === 'gif' ? 'animated' : 'static';
         emotesArr.push([
           id,
           wordIndex[index],
