@@ -1,5 +1,10 @@
 import * as PIXI from 'pixi.js';
 import tmi from 'tmi.js';
+import { gsap } from 'gsap';
+
+// Has to be imported for global mixins even if not used
+// eslint-disable-next-line no-unused-vars
+import * as pp from 'pixi-projection';
 
 import parseEmotesToURLs from './parseEmotesToURLs';
 import bttvMapper from './bttvMapper';
@@ -42,28 +47,73 @@ client.on('connected', async () => {
 
 let emoteContainers: PIXI.Container[] = []; // Array of emote sprites
 
+const camera = new pp.Camera3d();
+// camera.position.set(app.screen.width / 2, app.screen.height / 2);
+camera.setPlanes(800);
+// camera.euler.x = Math.PI / 5.5;
+app.stage.addChild(camera);
+
 async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
   const messageEmotes = parseEmotesToURLs(tags.emotes, message, bttvMap);
   const messageSprites = await loadEmotesPixi(messageEmotes);
 
-  const messageContainer = new PIXI.Container();
+  const messageContainer = new pp.Container3d();
   messageSprites.forEach((emoteSprite, index) => {
     const sprite = emoteSprite;
 
     messageContainer.addChild(sprite);
-    sprite.anchor.set(0.5);
+
     sprite.x = (config.maxEmoteWidth + config.emotePadding) * index;
     sprite.width = config.maxEmoteWidth;
     sprite.scale.set(Math.min(sprite.scale.x, sprite.scale.y));
 
-    messageContainer.y = config.maxEmoteWidth / 2;
-    messageContainer.scale.set(0.5, 0.5);
+    // messageContainer.scale3d.x = 0.5;
+    // messageContainer.scale3d.y = 0.5;
 
-    app.stage.addChild(messageContainer);
+    camera.addChild(messageContainer);
   });
+
   emoteContainers.push(messageContainer);
+
+  // messageContainer.convertTo3d();
+  console.log(messageContainer);
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  messageContainer.position3d.x = gsap.utils.random(0, w);
+  messageContainer.position3d.y = -1 * (config.maxEmoteWidth);
+  messageContainer.position3d.z = gsap.utils.random(0, 400);
+  console.log(messageContainer.width);
+  // messageContainer.pivot3d.x = (messageContainer.width / 2);
+  console.log(messageContainer.pivot3d.x);
+
+  const fall = gsap.utils.random(6, 15);
+  const eulerZ = gsap.utils.random(4, 8);
+  const eulerY = gsap.utils.random(2, 8);
+
+  gsap.to(messageContainer, {
+    duration: fall,
+    ease: 'none',
+    y: h + config.maxEmoteWidth,
+    repeat: -1,
+  });
+  gsap.to(messageContainer.euler, {
+    duration: eulerZ,
+    ease: 'sine.inOut',
+    z: gsap.utils.random(0, 180) * (Math.PI / 180),
+    repeat: -1,
+    yoyo: true,
+  });
+  gsap.to(messageContainer.euler, {
+    duration: eulerY,
+    ease: 'sine.inOut',
+    y: gsap.utils.random(0, 360) * (Math.PI / 180),
+    repeat: -1,
+    yoyo: true,
+  });
 }
 
+// TODO: Abstract this to it's own module
 const cache: any = {}; // Texture cache
 
 function loadEmotesPixi(emotes: any[]): Promise<PIXI.Sprite[]> {
@@ -93,10 +143,11 @@ function loadEmotesPixi(emotes: any[]): Promise<PIXI.Sprite[]> {
             emoteIndex: index,
           },
         };
+        // Pipe through API to convert GIF to WebM
         url = `https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=${url}`;
       }
       if (!cache[emoteId]) {
-        cache[emoteId] = {}; // Empty object to defer cache in case duplicates are already loading
+        cache[emoteId] = 'pending'; // Pending while texture loads
         emoteLoader.add(emoteId, url, loaderOptions);
       } else {
         // Defer loading from cache until after loading is complete in case any non-cached
@@ -126,9 +177,15 @@ function loadEmotesPixi(emotes: any[]): Promise<PIXI.Sprite[]> {
           cache[emoteId] = emoteSprite.texture;
           spriteArray[index] = emoteSprite;
         });
-
       cachedQueue.forEach(([index, emoteId]) => {
-        spriteArray[index] = new PIXI.Sprite(cache[emoteId]);
+        // TODO: Multiple messages with the same emote in rapid succession for the first time
+        //  leads to trying to pull from cache before cache is ready. The pending solution will
+        //  cause a gap in emotes. Would be rare and only happy until emote is loaded. A better
+        //  solution may be creating a queue for messages and processing them one by one. This would
+        //  ensure proper message order too.
+        if (cache[emoteId] !== 'pending') {
+          spriteArray[index] = new PIXI.Sprite(cache[emoteId]);
+        }
       });
 
       loader.destroy();
@@ -140,12 +197,14 @@ function loadEmotesPixi(emotes: any[]): Promise<PIXI.Sprite[]> {
 app.ticker.maxFPS = 120;
 app.ticker.add((delta: number) => {
   for (let i = 0; i < emoteContainers.length; i += 1) {
-    emoteContainers[i].x += delta;
+    // emoteContainers[i].x += delta;
+    // console.log(emoteContainers[i].x);
   }
 });
-
+// TODO: Cleanup currently breaks GSAP
 // Cleanup when switching off scene, tickers automatically pause
 function sceneHidden() {
+  gsap.globalTimeline.clear();
   // Destroy all emote sprites so scene is fresh when switching back
   for (let i = 0; i < emoteContainers.length; i += 1) {
     emoteContainers[i].destroy();
