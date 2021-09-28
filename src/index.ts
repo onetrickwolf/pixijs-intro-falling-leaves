@@ -14,8 +14,8 @@ import loadEmotesPixi from './loadEmotesWithPixi';
 
 // Configurations
 const config = {
-  channel: 'onetrickwolf',
-  maxEmotes: 3,
+  channel: 'hasanabi',
+  maxEmotes: 2,
   maxEmoteWidth: 112,
   emotePadding: 4,
 };
@@ -69,6 +69,8 @@ client.on('connected', async () => {
   client.on('message', handleMessage);
 });
 
+let emoteContainers: PIXI.Container[] = []; // Array of emote sprites
+
 // Handle messages from chat
 async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
   const messageEmotes = parseEmotes(tags.emotes, message, bttvMap);
@@ -88,11 +90,18 @@ async function handleMessage(channel: any, tags: { emotes: {}; }, message: strin
 
   applyFallingAnimation(messageContainer, app.screen.width, app.screen.height);
 
+  emoteContainers.push(messageContainer);
+
   camera.addChild(messageContainer);
 }
 
 // Cleanup when switching off scene, tickers automatically pause
 function sceneHidden() {
+  // Destroy all emote sprites so scene is fresh when switching back
+  for (let i = 0; i < emoteContainers.length; i += 1) {
+    emoteContainers[i].visible = false;
+  }
+  emoteContainers = [];
   // Remove listeners
   client.removeAllListeners('message');
   // TODO: Would ideally close the connection to Twitch fully but this may cause issues if the
