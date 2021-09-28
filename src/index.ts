@@ -2,12 +2,16 @@ import * as PIXI from 'pixi.js';
 import tmi from 'tmi.js';
 import { gsap } from 'gsap';
 
+import * as dat from 'dat.gui';
+
 // Has to be imported for global mixins even if not used
 // eslint-disable-next-line no-unused-vars
 import * as pp from 'pixi-projection';
 
 import parseEmotesToURLs from './parseEmotesToURLs';
 import bttvMapper from './bttvMapper';
+
+const bunnyImage = require('../assets/bunny.png');
 
 // Set up PixiJS Application
 const app = new PIXI.Application({
@@ -48,9 +52,54 @@ client.on('connected', async () => {
 let emoteContainers: PIXI.Container[] = []; // Array of emote sprites
 
 const camera = new pp.Camera3d();
-// camera.position.set(app.screen.width / 2, app.screen.height / 2);
-camera.setPlanes(800);
-// camera.euler.x = Math.PI / 5.5;
+camera.setPlanes(1000);
+
+const texture = PIXI.Texture.from('https://static-cdn.jtvnw.net/emoticons/v2/304734759/default/dark/3.0');
+const bunny = new pp.Sprite3d(texture);
+bunny.anchor.set(0.5, 0.5);
+bunny.scale.set(1);
+camera.addChild(bunny);
+
+const gui = new dat.GUI({ autoPlace: true });
+
+const bunnyFolder = gui.addFolder('Bunny');
+bunnyFolder.add(bunny.position3d, 'x', -1 * (app.screen.width / 2), app.screen.width / 2);
+bunnyFolder.add(bunny.position3d, 'y', -1 * (app.screen.height / 2) - 400, app.screen.height / 2 + 400);
+bunnyFolder.add(bunny.position3d, 'z', -1000, 1000);
+bunnyFolder.add(bunny.euler, 'x', 0, 360 * (Math.PI / 180)).name('euler x');
+bunnyFolder.add(bunny.euler, 'y', 0, 360 * (Math.PI / 180)).name('euler y');
+bunnyFolder.add(bunny.euler, 'z', 0, 360 * (Math.PI / 180)).name('euler z');
+bunnyFolder.open();
+
+const cameraFolder = gui.addFolder('Camera');
+
+const cameraOptions = {
+  focus: camera.focus,
+  near: camera.near,
+  far: camera.far,
+  ortographic: false,
+};
+
+cameraFolder.add(cameraOptions, 'focus', 0, 1000)
+  .onChange((value) => {
+    camera.setPlanes(value, camera.near, camera.far, camera.ortographic);
+  });
+cameraFolder.add(cameraOptions, 'near', 0, 100)
+  .onChange((value) => {
+    camera.setPlanes(camera.focus, value, camera.far, camera.ortographic);
+  });
+cameraFolder.add(cameraOptions, 'far', 0, 50000)
+  .onChange((value) => {
+    camera.setPlanes(camera.focus, camera.near, value, camera.ortographic);
+  });
+cameraFolder.add(cameraOptions, 'ortographic')
+  .onChange((value) => {
+    camera.setPlanes(camera.focus, camera.near, camera.far, value);
+  });
+cameraFolder.add(camera.position3d, 'z', -1000, 1000);
+cameraFolder.open();
+
+camera.position.set(app.screen.width / 2, app.screen.height / 2);
 app.stage.addChild(camera);
 
 async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
@@ -67,34 +116,27 @@ async function handleMessage(channel: any, tags: { emotes: {}; }, message: strin
     sprite.width = config.maxEmoteWidth;
     sprite.scale.set(Math.min(sprite.scale.x, sprite.scale.y));
 
-    // messageContainer.scale3d.x = 0.5;
-    // messageContainer.scale3d.y = 0.5;
-
     camera.addChild(messageContainer);
   });
 
   emoteContainers.push(messageContainer);
 
-  // messageContainer.convertTo3d();
-  console.log(messageContainer);
-
   const w = window.innerWidth;
   const h = window.innerHeight;
-  messageContainer.position3d.x = gsap.utils.random(0, w);
-  messageContainer.position3d.y = -1 * (config.maxEmoteWidth);
+  messageContainer.position3d.x = gsap.utils.random(-1 * (app.screen.width / 2), app.screen.width / 2);
+  messageContainer.position3d.y = (-1 * (app.screen.height / 2)) - 500; // - messageContainer.height;
   messageContainer.position3d.z = gsap.utils.random(0, 400);
-  console.log(messageContainer.width);
-  // messageContainer.pivot3d.x = (messageContainer.width / 2);
-  console.log(messageContainer.pivot3d.x);
+
+  messageContainer.pivot3d.x = gsap.utils.random(0, messageContainer.width);
 
   const fall = gsap.utils.random(6, 15);
   const eulerZ = gsap.utils.random(4, 8);
   const eulerY = gsap.utils.random(2, 8);
 
-  gsap.to(messageContainer, {
+  gsap.to(messageContainer.position3d, {
     duration: fall,
     ease: 'none',
-    y: h + config.maxEmoteWidth,
+    y: (app.screen.height / 2) + 500, // Not gonna do the math to make sure it's not visible...
     repeat: -1,
   });
   gsap.to(messageContainer.euler, {
@@ -230,7 +272,6 @@ document.addEventListener('visibilitychange', () => {
 });
 
 // Rotating buns for debugging and benchmarking
-const bunnyImage = require('../assets/bunny.png');
 
 const bunnyContainer = new PIXI.Container();
 
