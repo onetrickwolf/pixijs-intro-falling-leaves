@@ -1,6 +1,8 @@
 import * as PIXI from 'pixi.js';
 import tmi from 'tmi.js';
 
+import './style.css';
+
 // Has to be imported for global mixins even if not used
 // eslint-disable-next-line no-unused-vars
 import * as pp from 'pixi-projection';
@@ -13,6 +15,7 @@ import loadEmotesPixi from './loadEmotesWithPixi';
 // Configurations
 const config = {
   channel: 'onetrickwolf',
+  maxEmotes: 3,
   maxEmoteWidth: 112,
   emotePadding: 4,
 };
@@ -35,6 +38,25 @@ camera.setPlanes(1000);
 camera.position.set(app.screen.width / 2, app.screen.height / 2);
 app.stage.addChild(camera);
 
+// Set up standard leaves
+const leafImage1 = require('../assets/leaf.webp');
+const leafImage2 = require('../assets/leaf.png');
+const bg = require('../assets/bg.jpg');
+
+document.body.style.backgroundImage = bg;
+
+const leafTexture1 = PIXI.Texture.from(leafImage1);
+const leafTexture2 = PIXI.Texture.from(leafImage2);
+
+for (let i = 0; i < 40; i += 1) {
+  const texture = i % 2 === 0 ? leafTexture1 : leafTexture2;
+  const leaf = new pp.Sprite3d(texture);
+  leaf.scale3d.x = 0.2;
+  leaf.scale3d.y = 0.2;
+  applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true);
+  camera.addChild(leaf);
+}
+
 // Connect to Twitch chat
 const client = new tmi.Client({
   channels: [config.channel],
@@ -53,7 +75,7 @@ client.on('connected', async () => {
 // Handle messages from chat
 async function handleMessage(channel: any, tags: { emotes: {}; }, message: string) {
   const messageEmotes = parseEmotes(tags.emotes, message, bttvMap);
-  const messageSprites = await loadEmotesPixi(messageEmotes);
+  const messageSprites = await loadEmotesPixi(messageEmotes.slice(0, config.maxEmotes));
 
   const messageContainer = new pp.Container3d();
 
