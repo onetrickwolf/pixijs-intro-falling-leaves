@@ -1,4 +1,4 @@
-import parseEmotesToURLs from '../src/parseEmotesToURLs';
+import parseEmotesToURLs from '../src/parseEmotes';
 import bttvMapper from '../src/bttvMapper';
 
 const bttvMapSample = bttvMapper(require('./bttvMock.json'));
