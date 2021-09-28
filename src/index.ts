@@ -41,7 +41,6 @@ app.stage.addChild(camera);
 // Set up standard leaves
 const leafImage1 = require('../assets/leaf.webp');
 const leafImage2 = require('../assets/leaf.png');
-const bg = require('../assets/bg.jpg');
 
 const leafTexture1 = PIXI.Texture.from(leafImage1);
 const leafTexture2 = PIXI.Texture.from(leafImage2);
