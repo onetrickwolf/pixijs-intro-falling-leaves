@@ -6,12 +6,12 @@
 
 # pixijs-intro-example (falling leaves 🍂)
 
+URL: https://onetrickwolf.github.io/pixijs-intro-example/
+
 This is my first attempt at an intro stream for a Twitch stream largely made to test [gif-to-webm-please](https://github.com/onetrickwolf/gif-to-webm-please) 
 out.
 
 Currently allows 2 emotes max per message and supports all Twitch and BTTV emotes.
-
-URL: https://onetrickwolf.github.io/pixijs-intro-example/
 
 `debug` can be set as a query parameter to show performance stats and `channel=twitch_username` can be set to 
 override the default channel (currently https://www.twitch.tv/moonmoon).
@@ -25,6 +25,8 @@ for Twitch game jams. I previously [made a game jam game for MoonJam 2021](https
 but could not support animated emotes or emotes from BTTV. Also the existing solutions used by existing [moonmoon intro 
 screens](https://github.com/moonscreens/) and [twitch-chat-emotes](https://www.npmjs.com/package/twitch-chat-emotes) had some issues for PixiJS.
 
+Also was just interested in learning how to do this as well as am genuinely interested in creating some stream intros or integrations!
+
 ## External Dependencies
 
 Uses `https://gif-emotes.opl.io/` from [twitch-chat-emotes](https://github.com/CalebBabin/twitch-chat-emotes) to 
@@ -33,8 +35,14 @@ grab BTTV JSON.
 Uses a deployed AWS Lambda of [gif-to-webm-please](https://github.com/onetrickwolf/gif-to-webm-please) to convert 
 animated emotes.
 
+catJAM Example: 
+```
+https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://cdn.betterttv.net/emote/5f1b0186cf6d2144653d2970/2x
+```
+
 ## Roadmap
 
+- Make some more interesting intro screens now that I have the basics down
 - Eventually turn temporary lambda into more of a real API with a real domain.
 - Add more configurations:
   - Change or remove background
