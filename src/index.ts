@@ -11,10 +11,13 @@ import parseEmotes from './parseEmotes';
 import bttvMapper from './bttvMapper';
 import applyFallingAnimation from './applyFallingAnimation';
 import loadEmotesPixi from './loadEmotesWithPixi';
+import setupStats from './setupStats';
+
+setupStats();
 
 // Configurations
 const config = {
-  channel: 'hasanabi',
+  channel: 'moonmoon',
   maxEmotes: 2,
   maxEmoteWidth: 112,
   emotePadding: 4,
@@ -45,7 +48,7 @@ const leafImage2 = require('../assets/leaf.png');
 const leafTexture1 = PIXI.Texture.from(leafImage1);
 const leafTexture2 = PIXI.Texture.from(leafImage2);
 
-for (let i = 0; i < 40; i += 1) {
+for (let i = 0; i < 100; i += 1) {
   const texture = i % 2 === 0 ? leafTexture1 : leafTexture2;
   const leaf = new pp.Sprite3d(texture);
   leaf.scale3d.x = 0.2;

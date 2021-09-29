@@ -39,6 +39,7 @@
     "gsap": "^3.7.1",
     "pixi-projection": "^0.4.3",
     "pixi.js": "^6.1.3",
+    "stats.js": "^0.17.0",
     "tmi.js": "^1.8.5"
   }
 }

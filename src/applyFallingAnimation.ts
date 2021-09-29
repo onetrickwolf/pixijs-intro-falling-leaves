@@ -33,26 +33,49 @@ export default function applyFallingAnimation(
     y: yMax,
     repeat,
     onComplete: () => {
-      messageContainer.destroy();
+      messageContainer.parent.removeChild(messageContainer);
+      messageContainer.destroy({ children: true, baseTexture: true });
     },
   }).delay(randomDelay ? gsap.utils.random(-12, 12) : 0);
 
-  gsap.to(messageContainer.euler, {
-    duration: eulerZ,
-    ease: 'sine.inOut',
-    z: () => gsap.utils.random(0, 180) * (Math.PI / 180),
-    repeat: -1,
-    repeatRefresh: true,
-    yoyo: true,
-  });
+  // TODO: No idea why I have to do and if else here, if I set the repeat in any other way it starts
+  //  to glitch...
 
-  gsap.to(messageContainer.euler, {
-    duration: eulerXY,
-    ease: 'sine.inOut',
-    x: () => gsap.utils.random(0, 360) * (Math.PI / 180),
-    y: () => gsap.utils.random(0, 360) * (Math.PI / 180),
-    repeat: -1,
-    repeatRefresh: true,
-    yoyo: true,
-  });
+  if (repeat !== -1) {
+    gsap.to(messageContainer.euler, {
+      duration: eulerZ,
+      ease: 'sine.inOut',
+      z: () => gsap.utils.random(0, 180) * (Math.PI / 180),
+      repeat: (fall / eulerZ) - 1,
+      repeatRefresh: true,
+      yoyo: true,
+    });
+    gsap.to(messageContainer.euler, {
+      duration: eulerXY,
+      ease: 'sine.inOut',
+      x: () => gsap.utils.random(0, 360) * (Math.PI / 180),
+      y: () => gsap.utils.random(0, 360) * (Math.PI / 180),
+      repeat: (fall / eulerXY) - 1,
+      repeatRefresh: true,
+      yoyo: true,
+    });
+  } else {
+    gsap.to(messageContainer.euler, {
+      duration: eulerZ,
+      ease: 'sine.inOut',
+      z: () => gsap.utils.random(0, 180) * (Math.PI / 180),
+      repeat: -1,
+      repeatRefresh: true,
+      yoyo: true,
+    });
+    gsap.to(messageContainer.euler, {
+      duration: eulerXY,
+      ease: 'sine.inOut',
+      x: () => gsap.utils.random(0, 360) * (Math.PI / 180),
+      y: () => gsap.utils.random(0, 360) * (Math.PI / 180),
+      repeat: -1,
+      repeatRefresh: true,
+      yoyo: true,
+    });
+  }
 }
