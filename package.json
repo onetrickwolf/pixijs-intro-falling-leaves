@@ -1,13 +1,16 @@
 {
-  "name": "my-webpack-project",
+  "name": "pixijs-intro-example",
   "version": "1.0.0",
-  "description": "My webpack project",
+  "description": "Example intro for Twitch streams using PixiJS where emotes drop like falling leaves",
+  "homepage": "https://onetrickwolf.github.io/pixijs-intro-example",
   "main": "index.js",
   "scripts": {
     "test": "jest --watch",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
     "build:prod": "webpack --mode=production --node-env=production",
+    "predeploy": "npm run build:prod",
+    "deploy": "gh-pages -d dist",
     "watch": "webpack --watch",
     "serve": "webpack serve --host local-ip"
   },
@@ -24,6 +27,7 @@
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-plugin-import": "^2.24.2",
     "eslint-plugin-jest": "^24.4.2",
+    "gh-pages": "^3.2.3",
     "html-webpack-plugin": "^5.3.2",
     "jest": "^27.2.1",
     "style-loader": "^3.2.1",
