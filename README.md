@@ -1,6 +1,6 @@
 # 🚀 Welcome to your new awesome project!
 
-https://user-images.githubusercontent.com/13836477/135345756-a4495b28-3b3f-46c8-800c-0ea2df4014b5.mp4
+![pixijs-intro-example](https://user-images.githubusercontent.com/13836477/135346539-4c7b040e-fed5-436d-9130-799e1677c549.png)
 
 This project has been created using **webpack-cli**, you can now run
 
