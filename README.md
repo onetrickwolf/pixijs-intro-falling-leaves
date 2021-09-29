@@ -56,6 +56,10 @@ https://y6ev4yhjw1.execute-api.us-east-1.amazonaws.com/dev?gif=https://cdn.bette
 - Potentially make common library or contribute to `twitch-chat-emotes`
 - Performance tweaks, currently GSAP as a Tween engine seems to be the cause of performance issues not sure why...
 
+## Known Issues
+
+- In Chrome and some other browsers the animated emotes will not play unless you interact with the screen first (just clicking anywhere is enough). If the animated emotes are frozen you'll need to refresh and click somewhere before the emotes start to appear. This is not an issue in OBS but I will probably add something that forces users to interact first if a non-OBS browser is detected. FYI this is an intentional feature of browsers to prevent autoplaying videos, there's not really anything I can do to fix it other than adding forced interaction.
+
 ## More Resources
 
 If you'd like to make a stream intro (especially a 3D one) I'd highly recommend [moonmoon intro screens](https://github.com/moonscreens/) and [twitch-chat-emotes](https://www.npmjs.com/package/twitch-chat-emotes).
