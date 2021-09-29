@@ -13,11 +13,13 @@ import applyFallingAnimation from './applyFallingAnimation';
 import loadEmotesPixi from './loadEmotesWithPixi';
 import setupStats from './setupStats';
 
-setupStats();
+const searchParams = new URLSearchParams(window.location.search);
+
+if (searchParams.has('debug')) { setupStats(); }
 
 // Configurations
 const config = {
-  channel: 'moonmoon',
+  channel: searchParams.has('channel') ? searchParams.get('channel') : 'moonmoon',
   maxEmotes: 2,
   maxEmoteWidth: 112,
   emotePadding: 4,
