@@ -28,7 +28,8 @@ Object.freeze(config);
 
 // Set up PixiJS Application
 const app = new PIXI.Application({
-  resizeTo: window,
+  width: 1920,
+  height: 1080,
   resolution: window.devicePixelRatio || 1,
   backgroundAlpha: 0,
   antialias: true,
@@ -44,8 +45,8 @@ camera.position.set(app.screen.width / 2, app.screen.height / 2);
 app.stage.addChild(camera);
 
 // Set up standard leaves
-const leafImage1 = require('../assets/leaf.webp');
-const leafImage2 = require('../assets/leaf.png');
+const leafImage1 = require('../assets/leaf1.png');
+const leafImage2 = require('../assets/leaf2.png');
 
 const leafTexture1 = PIXI.Texture.from(leafImage1);
 const leafTexture2 = PIXI.Texture.from(leafImage2);
