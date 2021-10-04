@@ -23,6 +23,8 @@ const config = {
   maxEmotes: 2,
   maxEmoteWidth: 112,
   emotePadding: 4,
+  width: 1920,
+  height: 1080,
 };
 Object.freeze(config);
 
@@ -37,6 +39,14 @@ const app = new PIXI.Application({
 
 document.body.appendChild(app.view);
 app.view.style.display = 'inline';
+
+// Set up bg
+const bg = require('../assets/bg.png');
+
+const bgTexture = PIXI.Texture.from(bg);
+const bgSprite = new PIXI.Sprite(bgTexture);
+
+app.stage.addChild(bgSprite);
 
 // Set up pixi-projection camera
 const camera = new pp.Camera3d();
@@ -126,3 +136,30 @@ document.addEventListener('visibilitychange', () => {
     sceneVisible();
   }
 });
+
+function resize(): void {
+  // current screen size
+  const screenWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+  const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+
+  // uniform scale for our game
+  const scale = Math.min(screenWidth / config.width, screenHeight / config.height);
+
+  // the "uniformly englarged" size for our game
+  const enlargedWidth = Math.floor(scale * config.width);
+  const enlargedHeight = Math.floor(scale * config.height);
+
+  // margins for centering our game
+  const horizontalMargin = (screenWidth - enlargedWidth) / 2;
+  const verticalMargin = (screenHeight - enlargedHeight) / 2;
+
+  // now we use css trickery to set the sizes and margins
+  app.view.style.width = `${enlargedWidth}px`;
+  app.view.style.height = `${enlargedHeight}px`;
+  app.view.style.marginLeft = app.view.style.marginRight = `${horizontalMargin}px`;
+  app.view.style.marginTop = app.view.style.marginBottom = `${verticalMargin}px`;
+}
+
+window.addEventListener('resize', resize);
+
+resize();
