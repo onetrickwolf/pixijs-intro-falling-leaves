@@ -1,5 +1,5 @@
 <p align="center">
-    <img src=".github/pixijs-intro-example.jpg">
+    <img src=".github/pixijs-intro-falling-leaves.jpg">
     <br>
     <i>moon2CUTE</i>
 </p>

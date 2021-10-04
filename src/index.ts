@@ -1,5 +1,9 @@
 import * as PIXI from 'pixi.js';
 import tmi from 'tmi.js';
+import { Layer, Stage } from '@pixi/layers';
+import {
+  diffuseGroup, normalGroup, lightGroup, PointLight, AmbientLight, DirectionalLight,
+} from 'pixi-lights';
 
 import './style.css';
 
@@ -7,11 +11,15 @@ import './style.css';
 // eslint-disable-next-line no-unused-vars
 import * as pp from 'pixi-projection';
 
+import { gsap } from 'gsap';
+import { RoughEase } from 'gsap/EasePack';
 import parseEmotes from './parseEmotes';
 import bttvMapper from './bttvMapper';
 import applyFallingAnimation from './applyFallingAnimation';
 import loadEmotesPixi from './loadEmotesWithPixi';
 import setupStats from './setupStats';
+
+gsap.registerPlugin(RoughEase);
 
 const searchParams = new URLSearchParams(window.location.search);
 
@@ -37,16 +45,85 @@ const app = new PIXI.Application({
   antialias: true,
 });
 
+app.stage = new Stage();
+
 document.body.appendChild(app.view);
 app.view.style.display = 'inline';
 
+/**-------------------------
+ * Lighting
+ --------------------------*/
+
 // Set up bg
 const bg = require('../assets/bg.png');
+const bgN = require('../assets/bg_n.png');
+//
+// const bgTexture = PIXI.Texture.from(bg);
+// const bgSprite = new PIXI.Sprite(bgTexture);
+//
+// app.stage.addChild(bgSprite);
 
-const bgTexture = PIXI.Texture.from(bg);
-const bgSprite = new PIXI.Sprite(bgTexture);
+// Add the background diffuse color
+const diffuse = PIXI.Sprite.from(bg);
+diffuse.parentGroup = diffuseGroup;
 
-app.stage.addChild(bgSprite);
+// Add the background normal map
+const normals = PIXI.Sprite.from(bgN);
+normals.parentGroup = normalGroup;
+
+// Create the point light
+const light = new PointLight(0xffffff, 0.8);
+light.x = 1178;
+light.y = 1020;
+
+const light2 = new PointLight(0xffffff, 2);
+light2.x = 270;
+light2.y = 385;
+
+const light3 = new PointLight(0x4d4d59, 0.1);
+light3.x = 1340;
+light3.y = 915;
+
+gsap.to([light3], {
+  duration: 2,
+  ease: "rough({ template: none.out, strength: 1, points: 20, taper: 'none', randomize: true, clamp: false})",
+  brightness: 1.4,
+  repeat: -1,
+  yoyo: true,
+});
+
+gsap.to([light], {
+  duration: 2,
+  ease: "rough({ template: none.out, strength: 1, points: 20, taper: 'none', randomize: true, clamp: false})",
+  brightness: 1.4,
+  repeat: -1,
+  yoyo: true,
+});
+
+app.stage.addChild(new AmbientLight(0xffffff, 0.6));
+app.stage.addChild(new DirectionalLight(0x4d4d59, 5, new PIXI.Point(1, 1)));
+
+const background = new PIXI.Container();
+background.addChild(
+  normals,
+  diffuse,
+  light,
+  light2,
+  light3,
+);
+
+app.stage.addChild(
+  // put all layers for deferred rendering of normals
+  new Layer(diffuseGroup),
+  new Layer(normalGroup),
+  new Layer(lightGroup),
+  // Add the lights and images
+  background,
+);
+
+/**-------------------------
+ *
+ --------------------------*/
 
 // Set up pixi-projection camera
 const camera = new pp.Camera3d();
