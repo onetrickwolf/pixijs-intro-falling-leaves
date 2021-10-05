@@ -4,6 +4,7 @@ import { Layer, Stage } from '@pixi/layers';
 import {
   diffuseGroup, normalGroup, lightGroup, PointLight, AmbientLight, DirectionalLight,
 } from 'pixi-lights';
+import { makeNoise3D } from 'open-simplex-noise';
 
 import './style.css';
 
@@ -18,6 +19,8 @@ import bttvMapper from './bttvMapper';
 import applyFallingAnimation from './applyFallingAnimation';
 import loadEmotesPixi from './loadEmotesWithPixi';
 import setupStats from './setupStats';
+
+const noise = makeNoise3D(Date.now());
 
 gsap.registerPlugin(RoughEase);
 
@@ -139,6 +142,8 @@ const leafImage2 = require('../assets/leaf2.png');
 const leafTexture1 = PIXI.Texture.from(leafImage1);
 const leafTexture2 = PIXI.Texture.from(leafImage2);
 
+const leaves: pp.Sprite3d[] = [];
+
 for (let i = 0; i < 75; i += 1) {
   const texture = i % 2 === 0 ? leafTexture1 : leafTexture2;
   const leaf = new pp.Sprite3d(texture);
@@ -146,7 +151,10 @@ for (let i = 0; i < 75; i += 1) {
   leaf.scale3d.y = 0.1;
   applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 20);
   leaf.zIndex = 0;
+  // @ts-ignore
+  leaf.vx = 0;
   camera.addChild(leaf);
+  leaves.push(leaf);
 }
 
 for (let i = 0; i < 20; i += 1) {
@@ -156,7 +164,10 @@ for (let i = 0; i < 20; i += 1) {
   leaf.scale3d.y = 0.3;
   applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 15);
   leaf.zIndex = 100;
+  // @ts-ignore
+  leaf.vx = 0;
   camera.addChild(leaf);
+  leaves.push(leaf);
 }
 
 for (let i = 0; i < 5; i += 1) {
@@ -166,7 +177,10 @@ for (let i = 0; i < 5; i += 1) {
   leaf.scale3d.y = 0.6;
   applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 7);
   leaf.zIndex = 200;
+  // @ts-ignore
+  leaf.vx = 0;
   camera.addChild(leaf);
+  leaves.push(leaf);
 }
 
 /**-------------------------
@@ -201,6 +215,9 @@ async function handleMessage(channel: any, tags: { emotes: {}; }, message: strin
     const sprite = emoteSprite;
 
     messageContainer.addChild(sprite);
+
+    // @ts-ignore
+    messageContainer.vx = 0;
 
     sprite.x = (config.maxEmoteWidth + config.emotePadding) * index;
     sprite.width = config.maxEmoteWidth;
@@ -266,3 +283,30 @@ function resize(): void {
 window.addEventListener('resize', resize);
 
 resize();
+
+/**-------------------------
+ * Wind Ticker
+ --------------------------*/
+
+app.ticker.add((delta) => {
+  leaves.forEach((leaf) => {
+    // @ts-ignore
+    const wind = noise(leaf.position3d.y, leaf.scale3d.y, Date.now());
+    // @ts-ignore
+    leaf.vx += wind * 0.4;
+    // @ts-ignore
+    leaf.position3d.x += leaf.vx;
+  });
+  emoteContainers.forEach((emote, index) => {
+    // @ts-ignore
+    const wind = noise(emote.position3d.y, emote.scale3d.y, Date.now());
+    // @ts-ignore
+    emote.vx += wind * 0.4;
+    // @ts-ignore
+    emote.position3d.x += emote.vx;
+    // @ts-ignore
+    if (emote.position3d.y === 940) {
+      emoteContainers.splice(index, 1);
+    }
+  });
+});

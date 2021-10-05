@@ -42,6 +42,7 @@
     "@pixi/layers": "^1.0.9",
     "dat.gui": "^0.7.7",
     "gsap": "^3.7.1",
+    "open-simplex-noise": "^2.5.0",
     "pixi-lights": "^3.0.0",
     "pixi-projection": "^0.4.3",
     "pixi.js": "^6.1.3",

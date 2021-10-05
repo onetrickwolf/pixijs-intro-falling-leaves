@@ -43,6 +43,11 @@ export default function applyFallingAnimation(
       messageContainer.parent.removeChild(messageContainer);
       messageContainer.destroy({ children: true, baseTexture: true });
     },
+    onRepeat: () => {
+      messageContainer.position3d.x = gsap.utils.random(xMin, xMax, 1);
+      // @ts-ignore
+      messageContainer.vx = 0;
+    },
   }).delay(randomDelay ? gsap.utils.random(-12, 12) : 0);
 
   // TODO: No idea why I have to do and if else here, if I set the repeat in any other way it starts
