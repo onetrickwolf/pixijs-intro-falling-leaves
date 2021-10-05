@@ -122,13 +122,14 @@ app.stage.addChild(
 );
 
 /**-------------------------
- *
+ * Leaves
  --------------------------*/
 
 // Set up pixi-projection camera
 const camera = new pp.Camera3d();
 camera.setPlanes(1000);
 camera.position.set(app.screen.width / 2, app.screen.height / 2);
+camera.sortableChildren = true;
 app.stage.addChild(camera);
 
 // Set up standard leaves
@@ -138,14 +139,39 @@ const leafImage2 = require('../assets/leaf2.png');
 const leafTexture1 = PIXI.Texture.from(leafImage1);
 const leafTexture2 = PIXI.Texture.from(leafImage2);
 
-for (let i = 0; i < 100; i += 1) {
+for (let i = 0; i < 75; i += 1) {
   const texture = i % 2 === 0 ? leafTexture1 : leafTexture2;
   const leaf = new pp.Sprite3d(texture);
-  leaf.scale3d.x = 0.2;
-  leaf.scale3d.y = 0.2;
-  applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true);
+  leaf.scale3d.x = 0.1;
+  leaf.scale3d.y = 0.1;
+  applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 20);
+  leaf.zIndex = 0;
   camera.addChild(leaf);
 }
+
+for (let i = 0; i < 20; i += 1) {
+  const texture = i % 2 === 0 ? leafTexture1 : leafTexture2;
+  const leaf = new pp.Sprite3d(texture);
+  leaf.scale3d.x = 0.3;
+  leaf.scale3d.y = 0.3;
+  applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 15);
+  leaf.zIndex = 100;
+  camera.addChild(leaf);
+}
+
+for (let i = 0; i < 5; i += 1) {
+  const texture = i % 2 === 0 ? leafTexture1 : leafTexture2;
+  const leaf = new pp.Sprite3d(texture);
+  leaf.scale3d.x = 0.6;
+  leaf.scale3d.y = 0.6;
+  applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 7);
+  leaf.zIndex = 200;
+  camera.addChild(leaf);
+}
+
+/**-------------------------
+ * Twitch Chat
+ --------------------------*/
 
 // Connect to Twitch chat
 const client = new tmi.Client({

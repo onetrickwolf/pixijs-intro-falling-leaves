@@ -7,23 +7,30 @@ export default function applyFallingAnimation(
   height: number,
   repeat: number = 0,
   randomDelay: boolean = false,
+  speed: number = 10,
 ): void {
   const messageContainer = container;
 
-  const xMin = -(width / 2);
+  const getRandom = weightedRandom([0, width / 2, width], 'sine.out');
+
+  const weight = getRandom();
+
+  const xMin = -(width / 2) + (weight * gsap.utils.random(0.1, 1));
   const xMax = width / 2;
   const yMin = -(height / 2) - 400; // Visible math too hard...just plus or minus a bunch :)
   const yMax = (height / 2) + 400;
   const zMin = 0;
   const zMax = 400;
 
-  messageContainer.position3d.x = gsap.utils.random(xMin, xMax);
+  messageContainer.position3d.x = gsap.utils.random(xMin, xMax, 1);
   messageContainer.position3d.y = yMin;
-  messageContainer.position3d.z = gsap.utils.random(zMin, zMax);
+  messageContainer.position3d.z = gsap.utils.random(zMin, zMax, 1);
 
-  messageContainer.pivot3d.x = gsap.utils.random(0, messageContainer.width);
+  messageContainer.zIndex = 150;
 
-  const fall = gsap.utils.random(12, 20);
+  messageContainer.pivot3d.x = gsap.utils.random(0, messageContainer.width, 1);
+
+  const fall = speed; // gsap.utils.random(12, 20);
   const eulerZ = gsap.utils.random(4, 8);
   const eulerXY = gsap.utils.random(2, 8);
 
@@ -78,4 +85,14 @@ export default function applyFallingAnimation(
       yoyo: true,
     });
   }
+}
+
+function weightedRandom(collection: string | any[], ease: string | gsap.EaseFunction) {
+  return gsap.utils.pipe(
+    Math.random, // random number between 0 and 1
+    gsap.parseEase(ease), // apply the ease
+    gsap.utils.mapRange(0, 1, -0.5, collection.length - 0.5),
+    gsap.utils.snap(1), // snap to the closest integer
+    (i) => collection[i], // return that element from the array
+  );
 }
