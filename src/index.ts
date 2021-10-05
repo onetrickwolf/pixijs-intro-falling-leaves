@@ -152,7 +152,7 @@ for (let i = 0; i < 75; i += 1) {
   applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 20);
   leaf.zIndex = 0;
   // @ts-ignore
-  leaf.vx = -1;
+  leaf.vx = 0;
   camera.addChild(leaf);
   leaves.push(leaf);
 }
@@ -165,7 +165,7 @@ for (let i = 0; i < 20; i += 1) {
   applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 15);
   leaf.zIndex = 100;
   // @ts-ignore
-  leaf.vx = -1;
+  leaf.vx = 0;
   camera.addChild(leaf);
   leaves.push(leaf);
 }
@@ -178,7 +178,7 @@ for (let i = 0; i < 5; i += 1) {
   applyFallingAnimation(leaf, app.screen.width, app.screen.height, -1, true, 7);
   leaf.zIndex = 200;
   // @ts-ignore
-  leaf.vx = -1;
+  leaf.vx = 0;
   camera.addChild(leaf);
   leaves.push(leaf);
 }
@@ -217,7 +217,7 @@ async function handleMessage(channel: any, tags: { emotes: {}; }, message: strin
     messageContainer.addChild(sprite);
 
     // @ts-ignore
-    messageContainer.vx = -1;
+    messageContainer.vx = 0;
 
     sprite.x = (config.maxEmoteWidth + config.emotePadding) * index;
     sprite.width = config.maxEmoteWidth;
@@ -295,6 +295,8 @@ app.ticker.add((delta) => {
     // @ts-ignore
     const wind = noise(leaf.position3d.y, leaf.scale3d.y, new Date().getMinutes());
     // @ts-ignore
+    leaf.vx -= 0.005;
+    // @ts-ignore
     leaf.vx += wind * 0.2;
     // @ts-ignore
     leaf.position3d.x += leaf.vx;
@@ -302,6 +304,8 @@ app.ticker.add((delta) => {
   emoteContainers.forEach((emote, index) => {
     // @ts-ignore
     const wind = noise(emote.position3d.y, 0.3, new Date().getMinutes());
+    // @ts-ignore
+    emote.vx -= 0.005;
     // @ts-ignore
     emote.vx += wind * 0.2;
     // @ts-ignore
