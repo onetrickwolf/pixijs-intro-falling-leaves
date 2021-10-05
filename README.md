@@ -6,7 +6,7 @@
 
 # pixijs-intro-example (falling leaves 🍂)
 
-URL: https://onetrickwolf.github.io/pixijs-intro-example/
+URL: https://onetrickwolf.github.io/pixijs-intro-falling-leaves/ (optimized for desktop Chrome 75+ for now, some issues on Firefox and mobile)
 
 This is my first attempt at an intro stream for a Twitch stream largely made to test [gif-to-webm-please](https://github.com/onetrickwolf/gif-to-webm-please) 
 out.
