@@ -16,7 +16,7 @@ export default function applyFallingAnimation(
   const weight = getRandom();
 
   const xMin = -(width / 2) + (weight * gsap.utils.random(0.1, 1));
-  const xMax = width / 2;
+  const xMax = width / 2 + 200;
   const yMin = -(height / 2) - 400; // Visible math too hard...just plus or minus a bunch :)
   const yMax = (height / 2) + 400;
   const zMin = 0;
