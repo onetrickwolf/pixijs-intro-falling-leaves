@@ -58,7 +58,11 @@ app.view.style.display = 'inline';
  --------------------------*/
 
 // Set up bg
-const bg = require('../assets/bg.png');
+const bg1 = require('../assets/BG.png');
+const bg2 = require('../assets/Leavesback.png');
+const bg3 = require('../assets/TreeMid.png');
+const bg4 = require('../assets/LeavesFront.png');
+
 const bgN = require('../assets/bg_n.png');
 //
 // const bgTexture = PIXI.Texture.from(bg);
@@ -67,8 +71,13 @@ const bgN = require('../assets/bg_n.png');
 // app.stage.addChild(bgSprite);
 
 // Add the background diffuse color
-const diffuse = PIXI.Sprite.from(bg);
+const diffuse = PIXI.Sprite.from(bg1);
+const diffuse2 = PIXI.Sprite.from(bg2);
+const diffuse3 = PIXI.Sprite.from(bg3);
+const diffuse4 = PIXI.Sprite.from(bg4);
 diffuse.parentGroup = diffuseGroup;
+diffuse2.parentGroup = diffuseGroup;
+diffuse3.parentGroup = diffuseGroup;
 
 // Add the background normal map
 const normals = PIXI.Sprite.from(bgN);
@@ -114,16 +123,6 @@ background.addChild(
   light2,
   light3,
 );
-
-app.stage.addChild(
-  // put all layers for deferred rendering of normals
-  new Layer(diffuseGroup),
-  new Layer(normalGroup),
-  new Layer(lightGroup),
-  // Add the lights and images
-  background,
-);
-
 /**-------------------------
  * Leaves
  --------------------------*/
@@ -134,6 +133,20 @@ camera.setPlanes(1000);
 camera.position.set(app.screen.width / 2, app.screen.height / 2);
 camera.sortableChildren = true;
 app.stage.addChild(camera);
+
+background.position.set(-app.screen.width / 2, -app.screen.height / 2);
+diffuse2.position.set(-app.screen.width / 2, -app.screen.height / 2);
+diffuse3.position.set(-app.screen.width / 2, -app.screen.height / 2);
+diffuse4.position.set(-app.screen.width / 2, -app.screen.height / 2);
+
+camera.addChild(
+  // put all layers for deferred rendering of normals
+  new Layer(diffuseGroup),
+  new Layer(normalGroup),
+  new Layer(lightGroup),
+  // Add the lights and images
+  background,
+);
 
 // Set up standard leaves
 const leafImage1 = require('../assets/leaf1.png');
@@ -182,6 +195,14 @@ for (let i = 0; i < 5; i += 1) {
   camera.addChild(leaf);
   leaves.push(leaf);
 }
+
+diffuse4.zIndex = 160;
+
+camera.addChild(
+  diffuse2,
+  diffuse3,
+  diffuse4,
+);
 
 /**-------------------------
  * Twitch Chat
